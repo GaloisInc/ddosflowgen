@@ -174,7 +174,7 @@ Make sure the program points to the correct attack under the `topologies/` path,
 by editing the line: `from topologies import your_specific_attack as topology`
 
 ```
-python3 ddosflowgen.py --dataset noise --outdir result
+python3 ddosflowgen.py --dataset example-noise/ --outdir result
 ```
 
 Depending on the size of the attack, this can take a long time. There will be

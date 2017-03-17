@@ -35,12 +35,12 @@ nodelist = [nodeA, nodeB, nodeC, nodeD, nodeE, nodeF]
 
 # Each node/network space contains multiple amplifiers or bots (flooders)
 amplifiers_per_node = 5
-bots_per_node = 50
+bots_per_node = 10
 
 # The traffic records in the noise dataset form the basis for all output.
 # Define the interval for inserting synthetic flow records among the noise,
 # where the minimum is 0 and means the highest volume of synthetic traffic.
-synthetic_interval = 50
+synthetic_interval = 5
 
 # Scanning bots probe all networks with TCP connection attempts.
 # These are random sources that are scanning random destinations, with no response.
