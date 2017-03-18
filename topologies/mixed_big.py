@@ -22,16 +22,15 @@ class Node:
 # Scanners, if enabled, constantly scan/attack all defined networks.
 # For amplifiers and bots, only one node (and one IP) can be the victim.
 #
-# Node('ip.prefix', 'Name', has_amplifiers, has_bots, victim_ip)
-nodeA = Node('172.16',  'A',    True,   True,   None)
-nodeB = Node('172.17',  'B',    True,   False,  None)
-nodeC = Node('172.18',  'C',    False,  True,   None)
-nodeD = Node('172.19',  'D',    False,  True,   None)
-nodeE = Node('172.20',  'E',    True,   False,  None)
-nodeF = Node('172.21',  'F',    False,  False,  '172.21.99.99')
-
-# List all nodes
-nodelist = [nodeA, nodeB, nodeC, nodeD, nodeE, nodeF]
+nodelist = [
+    # Node('prefix', 'Name', has_amplifiers, has_bots, victim_ip)
+    Node('172.16',  'A',    True,   True,   None),
+    Node('172.17',  'B',    True,   False,  None),
+    Node('172.18',  'C',    False,  True,   None),
+    Node('172.19',  'D',    False,  True,   None),
+    Node('172.20',  'E',    True,   False,  None),
+    Node('172.21',  'F',    False,  False,  '172.21.99.99')
+]
 
 # Each node/network space contains multiple amplifiers or bots (flooders)
 amplifiers_per_node = 5
