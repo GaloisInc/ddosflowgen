@@ -213,21 +213,10 @@ tar czvf ~/silk-capture.tar.gz silk_repository/
 cp /opt/dddcop/silk/pipeline/log/alert.log ~/captured-alert.log
 ```
 
-## Re-playing a SiLK Capture
+## Funding
 
-*Optional for 3DCoP development*
-
-```
-# Clear the SiLK database
-reset-silk.sh --no-archive
-
-# Turn off SiLK Analysis Pipeline
-sudo service pipeline stop
-
-# Extract the captured SiLK database
-sudo tar xvf silk-capture.tar.gz -C /opt/dddcop/silk/silk_repository
-```
-
-Now start 3DCoP. Once 3DCoP is running, you can re-play the recorded alerts
-to simulate a live response to incoming traffic. Output individual lines from
-`captured-alert.log` with time delay between each, as in `run-attack.sh`
+This project is the result of funding provided by the Science and Technology Directorate
+of the United States Department of Homeland Security under contract number D15PC00185.
+The views and conclusions contained herein are those of the authors and should not be
+interpreted as necessarily representing the official policies or endorsements, either
+expressed or implied, of the Department of Homeland Security, or the U.S. Government.
