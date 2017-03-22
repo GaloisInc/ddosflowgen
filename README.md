@@ -216,7 +216,7 @@ cp /opt/dddcop/silk/pipeline/log/alert.log ~/captured-alert.log
 ## Funding
 
 This project is the result of funding provided by the Science and Technology Directorate
-of the United States Department of Homeland Security under contract number D15PC00185.
+of the United States Department of Homeland Security under contract number D15PC00186.
 The views and conclusions contained herein are those of the authors and should not be
 interpreted as necessarily representing the official policies or endorsements, either
 expressed or implied, of the Department of Homeland Security, or the U.S. Government.
