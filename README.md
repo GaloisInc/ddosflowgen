@@ -13,7 +13,7 @@ number of attacking networks and adjust parameters such as attack vectors
 present, amplification factor, and the number of attack sources per network.
 A human-readable "topology" source file defines the parameters for the attack.
 
-3DCoP and ddosflowgen operate at the endpoint networks, which (approximately)
+ddosflowgen operates at the endpoint networks, which (approximately)
 means the AS's near the attack sources and near the victim. Note that we aren't
 concerned with what happens at intermediate networks such as Tier 1's and
 routing hops along the path.
@@ -41,15 +41,15 @@ for all time-synchronized output. PCAP, NetFlow, IPFIX can be easily converted
 to SiLK. ddosflowgen will rewrite all IP addresses found in the
 **noise dataset**, performing the following transformations:
 
-* rewrites the local address to IP space used by 3DCoPs ("own network")
-* rewrites the remote addresses so that each 3DCoP sees a different set
-* generates synthetic attack flows from the vantage point of each 3DCoP
+* rewrites the local address to IP space found in the topology file ("own network")
+* rewrites the remote addresses so that each network sees a different set
+* generates synthetic attack flows from the vantage point of each network
 
 This implementation uses /16 or Class B **own networks**.
 
 For example, let's say there are three networks involved in the DDoS: a hosting
 provider at 172.20.x.x, a hosting provider at 172.21.x.x, and a university at
-172.22.x.x. (These are locations where we can run 3DCoP.)
+172.22.x.x.
 
 If the **noise dataset** contains some inbound traffic such as
 `tcp 1.2.3.4:52476 -> 5.6.7.8:25`, this template is used to generate synthetic
@@ -77,8 +77,7 @@ udp 172.21.125.128:53 -> 172.22.99.99:12345
 
 Each outbound traffic log will match, as well. The two hosting providers will
 see outbound udp floods that match these IPs and ports. ddosflowgen produces
-traffic logs that are consistent between all networks so that we can test
-whether 3DCoP is able to achieve collaborative detection and mitigation.
+traffic logs that are consistent between all networks.
 
 ## Definitions
 
@@ -92,16 +91,13 @@ synthetic traffic is written on top of.
 output files for each node defined in the attack topology. This output dataset
 contains both normal and attack traffic.
 
-The **SiLK capture** are the static artifacts (SiLK database and alert.log)
-that result from feeding a generated dataset into SiLK. The database under
-`silk_repository` can be stored in a tar file, and Analysis Pipeline's
-alert.log should be captured as well. Together these can be used to
-re-play the dataset. See: Re-Playing a SiLK Capture.
+The **SiLK capture** is the static artifact (SiLK database) that results
+from feeding a generated dataset into SiLK. The database under `silk_repository`
+can be stored in a tar file and can be used to re-play the dataset.
 
-**own network** is the IP network block or range that one 3DCoP is responsible
-for. This is the IP range that an organization owns, and is considered
+**own network** is the IP range that an organization owns, and is considered
 internal for traffic analysis, e.g. `172.16` meaning that 172.16.xxx.xxx
-are all internal to this 3DCoP.
+are all internal to this network.
 
 # Steps for using ddosflowgen
 
@@ -115,25 +111,20 @@ the original format, we will first load the traffic records into SiLK.
 Start with an empty SiLK database and configure `sensors.conf` to
 recognize the correct `internal-ipblocks` that are appropriate for the
 noise dataset. This is vital, as we need SiLK to properly categorize
-the inbound vs outbound traffic. You might find it useful to run:
-
-```
-# This command is part of 3DCoP
-reset-silk.sh --no-archive
-```
+the inbound vs outbound traffic.
 
 Next, feed the noise dataset into SiLK. Refer to the SiLK sensor
 configuration for the types of input it can process. We assume that your
 SiLK installation is configured to accept incoming flow records at the path
-`/opt/dddcop/silk/incoming/` (this will use the directory polling method).
+`/var/silk/incoming/` (this will use the directory polling method).
 
 ```
 # For IPFIX noise dataset
-rwipfix2silk --silk-output /opt/dddcop/silk/incoming/new.rw original.yaf
+rwipfix2silk --silk-output /var/silk/incoming/new.rw original.yaf
 
 # For PCAP noise dataset
 rwp2yaf2silk --in=day.pcap --out=silk.rw
-mv silk.rw /opt/dddcop/silk/incoming
+mv silk.rw /var/silk/incoming
 ```
 
 Wait until SiLK has finished processing the input. Run `top` if unsure.
@@ -142,7 +133,7 @@ Wait until SiLK has finished processing the input. Run `top` if unsure.
 
 Next, export SiLK flows to text files. To make sure you are grabbing the full
 range of the database, observe which time stamps (file names) exist under
-`/opt/dddcop/silk/silk_repository`
+`/var/silk/silk_repository`
 
 ```
 # Export inbound traffic from SiLK to text
@@ -162,7 +153,9 @@ with `internal-ipblocks`.
 These files will be the `--dataset` provided to ddosflowgen.
 
 You can reuse this **noise dataset** multiple times. On future runs, you can
-jump ahead to Step 3 if you are satisfied with using your earlier noise.
+jump ahead to Step 3 if you are satisfied with using your earlier noise. We
+have also provided a very brief sample of noise under `example-noise`.
+The exact IP addresses do not matter, as they will be written anyway.
 
 ## Step 3: Run ddosflowgen
 
@@ -181,7 +174,7 @@ Depending on the size of the attack, this can take a long time. There will be
 two output files for each node defined in the topology: inbound and outbound.
 This output, for all nodes, is the **generated dataset**.
 
-## Importing the Generated Dataset into SiLK
+## Step 4: Import the Generated Dataset into SiLK
 
 SiLK is normally used to collect live incoming traffic data from routers,
 accumulating it into database files. If using
@@ -198,19 +191,16 @@ Start with an empty SiLK database, adjust `sensors.conf` to recognize
 the current **own network** and feed the generated dataset into SiLK:
 
 ```
-reset-silk.sh --no-archive
 rwtuc --stop-on-error X-inbound.tuc X-outbound.tuc > synthetic.rw
-mv synthetic.rw /opt/dddcop/silk/incoming
+mv synthetic.rw /var/silk/incoming
 ```
 
-Wait until SiLK has finished processing the input. Run `top` if unsure, and
-examine the `alert.log` to make sure the detector has triggered.
+Wait until SiLK has finished processing the input. Run `top` if unsure.
 Then store the SiLK capture.
 
 ```
-cd /opt/dddcop/silk
+cd /var/silk
 tar czvf ~/silk-capture.tar.gz silk_repository/
-cp /opt/dddcop/silk/pipeline/log/alert.log ~/captured-alert.log
 ```
 
 ## Funding
